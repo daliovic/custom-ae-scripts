@@ -1,6 +1,7 @@
 // Create UI Panel
 var myPanel = new Window("palette", "WebP Exporter", undefined);
 myPanel.orientation = "column";
+
 // Create a group for Quality slider and text
 var qualityGroup = myPanel.add("group", undefined);
 qualityGroup.orientation = "row";
@@ -20,6 +21,7 @@ widthInput.characters = 5;
 var heightText = dimensionsGroup.add("statictext", undefined, "Height:");
 var heightInput = dimensionsGroup.add("edittext", undefined, "270"); // Default height
 heightInput.characters = 5;
+
 // Slider change events
 mySlider.onChanging = function () {
   myEditText.text = Math.round(mySlider.value);
@@ -34,6 +36,20 @@ var compressCheckbox = checkboxGroup.add(
   "Compress PNGs"
 );
 compressCheckbox.value = true; // Default to checked
+
+// Add a checkbox for running on open compositions
+var openCompsGroup = myPanel.add("group", undefined);
+openCompsGroup.orientation = "row";
+var openCompsCheckbox = openCompsGroup.add(
+  "checkbox",
+  undefined,
+  "Run on open compositions"
+);
+openCompsCheckbox.value = false; // Default to unchecked
+
+// Add text to display number of open compositions
+var openCompsText = openCompsGroup.add("statictext", undefined, "");
+updateOpenCompsCount();
 
 // Create a group for Quality Range inputs
 var qualityRangeGroup = myPanel.add("group", undefined);
@@ -59,33 +75,56 @@ highQualityInput.characters = 5;
 var myButton = myPanel.add("button", undefined, "Export");
 myButton.onClick = function () {
   var qualityValue = Math.round(mySlider.value);
-  var exportInfo = runExport(qualityValue); // Modify runExport to return an object
-  if (exportInfo) {
-    generateIcons(exportInfo.subDir, exportInfo.currentCompName); // Call the batch file with windowsPath as parameter
-    if (compressCheckbox.value) {
-      // Path to the VBScript file
-      var vbsPath =
-        "C:\\Users\\dalid\\OneDrive\\Documents\\Scripts\\RunSilent.vbs";
-      var lowQualityValue = lowQualityInput.text;
-      var highQualityValue = highQualityInput.text;
-      var qualityRange = lowQualityValue + "-" + highQualityValue;
-      // Command to execute the VBScript, which in turn executes the batch file
-      var vbscriptCommand =
-        'cmd.exe /c wscript "' +
-        vbsPath +
-        '" "C:\\Users\\dalid\\OneDrive\\Documents\\Scripts\\CompressPNGNew.bat" "' +
-        exportInfo.windowsPath +
-        '" ' +
-        qualityRange;
+  var compsToExport = openCompsCheckbox.value ? getOpenCompositions() : [app.project.activeItem];
+  
+  for (var i = 0; i < compsToExport.length; i++) {
+    var curComp = compsToExport[i];
+    if (curComp && curComp instanceof CompItem) {
+      var exportInfo = runExport(qualityValue, curComp);
+      if (exportInfo) {
+        generateIcons(exportInfo.subDir, exportInfo.currentCompName);
+        if (compressCheckbox.value) {
+          // Path to the VBScript file
+          var vbsPath =
+            "C:\\Users\\dalid\\OneDrive\\Documents\\Scripts\\RunSilent.vbs";
+          var lowQualityValue = lowQualityInput.text;
+          var highQualityValue = highQualityInput.text;
+          var qualityRange = lowQualityValue + "-" + highQualityValue;
+          // Command to execute the VBScript, which in turn executes the batch file
+          var vbscriptCommand =
+            'cmd.exe /c wscript "' +
+            vbsPath +
+            '" "C:\\Users\\dalid\\OneDrive\\Documents\\Scripts\\CompressPNGNew.bat" "' +
+            exportInfo.windowsPath +
+            '" ' +
+            qualityRange;
 
-      system.callSystem(vbscriptCommand);
+          system.callSystem(vbscriptCommand);
+        }
+      }
     }
   }
 };
 
 myPanel.show();
 
-function runExport(qualityValue) {
+function updateOpenCompsCount() {
+  var openComps = getOpenCompositions();
+  openCompsText.text = "(" + openComps.length + " open)";
+}
+
+function getOpenCompositions() {
+  var openComps = [];
+  for (var i = 1; i <= app.project.numItems; i++) {
+    var item = app.project.item(i);
+    if (item instanceof CompItem && item.openInViewer) {
+      openComps.push(item);
+    }
+  }
+  return openComps;
+}
+
+function runExport(qualityValue, curComp) {
   // Function to open folder
   function openFolder(path) {
     var folder = new Folder(path);
@@ -102,9 +141,6 @@ function runExport(qualityValue) {
     if (app.project.file === null) {
       alert("Please save the project first.");
     } else {
-      // Get the current composition
-      var curComp = app.project.activeItem;
-
       if (!curComp || !(curComp instanceof CompItem)) {
         alert("Please select a composition.");
       } else {
@@ -207,6 +243,7 @@ function runExport(qualityValue) {
   }
   return null;
 }
+
 function generateIcons(subDir, currentCompName) {
   var comp = app.project.activeItem;
   if (!comp || !(comp instanceof CompItem)) {
@@ -251,3 +288,8 @@ function generateIcons(subDir, currentCompName) {
   // Generate 282x210 thumbnail
   createThumbnail(282, 210, "282");
 }
+
+// Update open compositions count when the panel is shown
+myPanel.onShow = function() {
+  updateOpenCompsCount();
+};
