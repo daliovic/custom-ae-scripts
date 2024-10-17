@@ -229,8 +229,12 @@ function runExport(qualityValue, curComp) {
             '.webp"';
 
           system.callSystem(ffmpegCommand);
-          var deleteMOVCommand = 'cmd.exe /c del "' + outputPathMOV + '"';
-          system.callSystem(deleteMOVCommand);
+
+          // Delete the MOV file
+          var movFile = new File(outputPathMOV);
+          if (movFile.exists) {
+            movFile.remove();
+          }
 
           return {
             subDir: subDir,
