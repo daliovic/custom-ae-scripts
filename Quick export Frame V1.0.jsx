@@ -37,19 +37,19 @@ var compressCheckbox = checkboxGroup.add(
 );
 compressCheckbox.value = true; // Default to checked
 
-// Add a checkbox for running on open compositions
-var openCompsGroup = myPanel.add("group", undefined);
-openCompsGroup.orientation = "row";
-var openCompsCheckbox = openCompsGroup.add(
+// Add a checkbox for running on selected compositions
+var selectedCompsGroup = myPanel.add("group", undefined);
+selectedCompsGroup.orientation = "row";
+var selectedCompsCheckbox = selectedCompsGroup.add(
   "checkbox",
   undefined,
-  "Run on open compositions"
+  "Run on selected compositions"
 );
-openCompsCheckbox.value = false; // Default to unchecked
+selectedCompsCheckbox.value = false; // Default to unchecked
 
-// Add text to display number of open compositions
-var openCompsText = openCompsGroup.add("statictext", undefined, "");
-updateOpenCompsCount();
+// Add text to display number of selected compositions
+var selectedCompsText = selectedCompsGroup.add("statictext", undefined, "");
+updateSelectedCompsCount();
 
 // Create a group for Quality Range inputs
 var qualityRangeGroup = myPanel.add("group", undefined);
@@ -75,7 +75,7 @@ highQualityInput.characters = 5;
 var myButton = myPanel.add("button", undefined, "Export");
 myButton.onClick = function () {
   var qualityValue = Math.round(mySlider.value);
-  var compsToExport = openCompsCheckbox.value ? getOpenCompositions() : [app.project.activeItem];
+  var compsToExport = selectedCompsCheckbox.value ? getSelectedCompositions() : [app.project.activeItem];
   
   for (var i = 0; i < compsToExport.length; i++) {
     var curComp = compsToExport[i];
@@ -108,20 +108,20 @@ myButton.onClick = function () {
 
 myPanel.show();
 
-function updateOpenCompsCount() {
-  var openComps = getOpenCompositions();
-  openCompsText.text = "(" + openComps.length + " open)";
+function updateSelectedCompsCount() {
+  var selectedComps = getSelectedCompositions();
+  selectedCompsText.text = "(" + selectedComps.length + " selected)";
 }
 
-function getOpenCompositions() {
-  var openComps = [];
+function getSelectedCompositions() {
+  var selectedComps = [];
   for (var i = 1; i <= app.project.numItems; i++) {
     var item = app.project.item(i);
-    if (item instanceof CompItem && item.openInViewer) {
-      openComps.push(item);
+    if (item instanceof CompItem && item.selected) {
+      selectedComps.push(item);
     }
   }
-  return openComps;
+  return selectedComps;
 }
 
 function runExport(qualityValue, curComp) {
@@ -289,7 +289,10 @@ function generateIcons(subDir, currentCompName) {
   createThumbnail(282, 210, "282");
 }
 
-// Update open compositions count when the panel is shown
+// Update selected compositions count when the panel is shown
 myPanel.onShow = function() {
-  updateOpenCompsCount();
+  updateSelectedCompsCount();
 };
+
+// Add an event listener to update the count when selection changes
+app.project.items.addEvent("onSelect", updateSelectedCompsCount);
