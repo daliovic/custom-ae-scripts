@@ -194,9 +194,9 @@
                     log("ERROR: Compressed file not found: " + originalPath);
                 }
             }
-            alert("Export and compression completed! Check log file for details.");
+            log("Export and compression completed! Check log file for details.");
         } else {
-            alert("Export completed!");
+            log("Export completed!");
         }
 
         log("Script execution completed");

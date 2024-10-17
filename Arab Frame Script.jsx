@@ -123,7 +123,7 @@ function applyChanges() {
         messages.push("Could not find a composition ending with 'frame'.");
     }
     
-    alert(messages.join("\n"));
+    // Success alert removed
 }
 
 // Attach the function to the button

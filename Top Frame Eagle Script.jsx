@@ -76,7 +76,7 @@ function applyChanges() {
             alert("Could not find 'Name Placeholder' composition in the active composition.");
         }
         
-        alert("Changes applied successfully!");
+        // Success alert removed
     } else {
         alert("Please select a composition first.");
     }
