@@ -7,23 +7,49 @@ mainPanel.orientation = "column";
 // Create input field for the name
 var nameGroup = mainPanel.add("group");
 nameGroup.orientation = "row";
-nameGroup.add("statictext", undefined, "Enter Name:");
+nameGroup.add("statictext", undefined, "Name:");
 var nameInput = nameGroup.add("edittext", undefined, "");
 nameInput.characters = 20;
+var nameClearButton = nameGroup.add("button", undefined, "Clear");
+
+// Create input field for the comp name
+var compNameGroup = mainPanel.add("group");
+compNameGroup.orientation = "row";
+compNameGroup.add("statictext", undefined, "Comp Name:");
+var compNameInput = compNameGroup.add("edittext", undefined, "");
+compNameInput.characters = 20;
+var compNameClearButton = compNameGroup.add("button", undefined, "Clear");
 
 // Create button to apply changes
 var applyButton = mainPanel.add("button", undefined, "Apply Changes");
 
+// Function to clear name input
+function clearNameInput() {
+    nameInput.text = "";
+}
+
+// Function to clear comp name input
+function clearCompNameInput() {
+    compNameInput.text = "";
+}
+
+// Attach clear functions to clear buttons
+nameClearButton.onClick = clearNameInput;
+compNameClearButton.onClick = clearCompNameInput;
+
 // Function to change composition name and update text layer
 function applyChanges() {
     var enteredName = nameInput.text;
+    var enteredCompName = compNameInput.text;
     
     // Get the active composition
     var activeComp = app.project.activeItem;
     
     if (activeComp && activeComp instanceof CompItem) {
         // Change the name of the active composition
-        activeComp.name = "Top Frame Eagle " + enteredName;
+        // If comp name is not specified, use the entered name
+        var compName = enteredCompName !== "" ? enteredCompName : enteredName;
+        activeComp.name = "Top Frame Eagle " + compName;
         
         // Find the "Name Placeholder" composition
         var namePlaceholderComp;
